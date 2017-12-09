@@ -214,7 +214,8 @@ def MIPSparse(p1):
         for i in range(len(lines)):
            f.write(lines[i].strip()+'\t'+str(adds+4*i)+'\t'+getnames(lines[i])+'\n')
         f.close()
-#MIPS simulation function 
+#MIPS simulation function
+ 
 def MIPSsimulations(p1):
     try:
         f=open(p1,'r')

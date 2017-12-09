@@ -9,6 +9,7 @@ Created on Sun Dec  3 19:08:55 2017
 """
 wi=[]
 def main():
+    #这一部分需要作整体来进行相关的操作
     s=''
     for i in range(20):
         s+='-'

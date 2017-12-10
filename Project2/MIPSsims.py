@@ -222,6 +222,7 @@ def MIPSparse(p1):
         for i in range(len(lines)):
            f.write(lines[i].strip()+'\t'+str(adds+4*i)+'\t'+getnames(lines[i])+'\n')
         f.close()
+        
 '''MIPS simulation function,这一步部分是需要进行修改的,因为这一部分原始的脚本是为了进行
 模拟mips的操作,但是新的要求是执行流水线的操作'''
 def MIPSsimulations(p1):
@@ -263,10 +264,27 @@ def MIPSsimulations(p1):
         while(1):
             adds,reg,mem=MIPSsimulation(fadds,adds,instrs[I][1],reg,mem)
             sim=''
-            for j in range(20):
-                sim=sim+'-'
-            sim=sim+'\n'
-            sim=sim+'Cycle:'+str(J+1)+'\t'+str(instrs[I][0])+'\t'+getnames(instrs[I][1])+'\n'+'\nRegisters\n'+'R00:'
+            for i in range(20):
+                sim+='-'
+                print('-',end='')
+            sim=sim+'\nCycle:'+str(2)+'\n\n'+'IF Unit:\n'
+            sim=sim+'\tWaiting Instruction:\n'
+            sim=sim+'\tExecuted Instruction:\n'
+            sim=sim+'Pre-Issue Queue:\n'
+            sim=sim+'\tEntry 0:\n'
+            sim=sim+'\tEntry 1:\n'
+            sim=sim+'\tEntry 2:\n'
+            sim=sim+'\tEntry 3:\n'
+            sim=sim+'Pre-ALU1 Queue:\n'
+            sim=sim+'\tEntry 0:\n'
+            sim=sim+'\tEntry 1:\n'
+            sim=sim+'Pre-MEM Queue:\n'
+            sim=sim+'Post-MEM Queue:\n'
+            sim=sim+'Pre-ALU2 Queue:\n'
+            sim=sim+'\tEntry 0:\n'
+            sim=sim+'\tEntry 1:\n'
+            sim=sim+'Post-ALU2 Queue:\n'
+            sim=sim+'\nRegisters\n'+'R00:'
             for k in range(32):
                 if(k==8):
                     sim=sim+'\nR08:'
@@ -282,7 +300,8 @@ def MIPSsimulations(p1):
                 if((i1+1)%8==0 and (i1+1)!=len(mem)): 
                     sim=sim+'\n'+str(fadds+4*(i1+1))+':'
             sim=sim+'\n\n'
-            
+            print(sim)
+            '''
             f1.write(sim)
             if(getnames(instrs[I][1])=='BREAK'):
                 break;
@@ -290,10 +309,10 @@ def MIPSsimulations(p1):
                 if(instrs[l][0]==adds):
                     I=l
             J=J+1
-        f1.close()
+        f1.close()'''
 #main function
 def MIPSsim(p1):
-    MIPSparse(p1)
+    MIPSparse(p1)  #这一部分不需要做任何的调整
     MIPSsimulations(p1)
     
 #测试数据的地址

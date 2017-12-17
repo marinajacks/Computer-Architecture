@@ -213,10 +213,10 @@ def MIPSparse(p1):
     except IOError:
         print("No such file or directory "+p1)
     else:
-        if(('/') in p1):
-            p2=p1.replace(p1.split('/')[-1],'disassembly.txt')
-        else:
+        if(('//') in p1):
             p2=p1.replace(p1.split('//')[-1],'disassembly.txt')
+        else:
+            p2=p1.replace(p1.split('\\')[-1],'disassembly.txt')
         f=open(p2,'w')
         lines=f1.readlines()
         for i in range(len(lines)):
@@ -231,12 +231,12 @@ def MIPSsimulations(p1):
     except IOError:
         print("No such file or directory "+p1)
     else:
-        if(('/') in p1):
+        if(('//') in p1):
         #由于mac系统和win系统存在地址的差异,这个需要对win程序下的软件进行调整
         #才可以执行这个操作,否则会导致数据存在异常
-            p2=p1.replace(p1.split('/')[-1],'simulation.txt')  
+            p2=p1.replace(p1.split('//')[-1],'simulation.txt')  
         else:
-            p2=p1.replace(p1.split('//')[-1],'simulation.txt')
+            p2=p1.replace(p1.split('\\')[-1],'simulation.txt')
         
         f1=open(p2,'w')
         lines=f.readlines()
@@ -302,7 +302,6 @@ def MIPSsimulations(p1):
                     sim=sim+'\n'+str(fadds+4*(i1+1))+':'
             sim=sim+'\n\n'
             print(sim)
-            '''
             f1.write(sim)
             if(getnames(instrs[I][1])=='BREAK'):
                 break;
@@ -310,7 +309,7 @@ def MIPSsimulations(p1):
                 if(instrs[l][0]==adds):
                     I=l
             J=J+1
-        f1.close()'''
+        f1.close()
 #main function
 def MIPSsim(p1):
     MIPSparse(p1)  #这一部分不需要做任何的调整
@@ -326,7 +325,8 @@ def MIPSsim(p1):
 '''
 
 def test():
-        p1='/Users/macbook/documents/华东师大/硕士课程/计算机体系结构/课后作业/Project2/sample.txt'
+        #p1='/Users/macbook/documents/华东师大/硕士课程/计算机体系结构/课后作业/Project2/sample.txt'
+        p1='E:\\project\\Computer\\Computer-Architecture\\Project2\\sample.txt'
         f=open(p1,'r')
         lines=f.readlines()
         adds=256    #初始化的adds地址信息
@@ -678,8 +678,17 @@ def test():
             print(sim)
       
             
-                
             
+            
+            '''
+            
+            p1='E:\\project\\Computer\\Computer-Architecture\\Project2\\sample.txt'
+            f=open(p1,'r')
+            lines=f.readlines()
+            for line in lines:
+                print(line)
+                
+            '''
         
 
             

@@ -60,4 +60,16 @@ def main():
     这里的更细就需要涉及到project1项目中的一些具体的操作
     '''
     
+    
+    
     return s
+
+
+
+
+      '''    
+            if(getnames(instrs[J][1])=='BREAK'):
+                break
+            
+            
+           ''' 

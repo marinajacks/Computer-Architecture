@@ -494,7 +494,7 @@ def test():
             的数据'''
             
             if(len(Pre_Issue)>0 and (getnames(Pre_Issue[0]).split(' ')[0]=='LW' or getnames(Pre_Issue[0]).split(' ')[0]=='SW')):
-                if(len(Pre_ALU1)==0 and len(Pre_ALU2)==0 and len(Post_ALU2)==0):
+                if(len(Pre_ALU2)==0 and len(Post_ALU2)==0):
                     if(len(Post_MEM)>0):
                         adds,reg,mem=MIPSsimulation(fadds,adds,Post_MEM[0],reg,mem)
                         Post_MEM.popleft()
@@ -584,7 +584,7 @@ def test():
             if(len(Post_MEM)==0):
                 flag1=True
               
-            if(getnames(instrs[J][1])=='BREAK' or K==10):
+            if(getnames(instrs[J][1])=='BREAK' or K==12):
                 break
             
             K=K+1

@@ -379,7 +379,9 @@ def test():
                     break
                 elif(getnames(instrs[J][1]).split(' ')[0]=='J'):
                     IF_Unit.append(instrs[J][1])
+                    
                     adds,reg,mem=MIPSsimulation(fadds,adds,IF_Unit[0],reg,mem)
+                    
                     flag=False
                     break
                 else:
@@ -493,9 +495,75 @@ def test():
             指令执行了,然后再进行后期的处理,下面的可以用来处理,下面的指令都是处理非LW和SW
             的数据'''
             #这一部分是处理ALU1路径上相关的指令的.
-            if(len(Pre_Issue)>0):
-                #len(Pre_Issue)>0 and 
-                if((getnames(Pre_Issue[0]).split(' ')[0]=='LW' or getnames(Pre_Issue[0]).split(' ')[0]=='SW')):
+            if(len(Pre_Issue)==0):
+                if(len(Pre_ALU2)==0 and len(Post_ALU2)==0):
+                    if(len(Post_MEM)>0):
+                        adds,reg,mem=MIPSsimulation(fadds,adds,Post_MEM[0],reg,mem)
+                        Post_MEM.popleft()
+                       
+                        if(len(Pre_MEM)>0):
+                            Post_MEM.append(Pre_MEM.popleft())
+                            if(len(Pre_ALU1)>0):
+                                Pre_MEM.append(Pre_ALU1.popleft())
+                                if(len(Pre_Issue)>0 and (getnames(Pre_Issue[0]).split(' ')[0]=='LW' or getnames(Pre_Issue[0]).split(' ')[0]=='SW')):
+                                    Pre_ALU1.append(Pre_Issue.popleft())
+                            else:
+                                if(len(Pre_Issue)>0 and (getnames(Pre_Issue[0]).split(' ')[0]=='LW' or getnames(Pre_Issue[0]).split(' ')[0]=='SW')):
+                                    Pre_ALU1.append(Pre_Issue.popleft())
+                        else:
+                            if(len(Pre_ALU1)>0):
+                                Pre_MEM.append(Pre_ALU1.popleft())
+                                if(len(Pre_Issue)>0 and (getnames(Pre_Issue[0]).split(' ')[0]=='LW' or getnames(Pre_Issue[0]).split(' ')[0]=='SW')): 
+                                    Pre_ALU1.append(Pre_Issue.popleft())
+                            else:
+                                if(len(Pre_Issue)>0 and (getnames(Pre_Issue[0]).split(' ')[0]=='LW' or getnames(Pre_Issue[0]).split(' ')[0]=='SW')): 
+                                    Pre_ALU1.append(Pre_Issue.popleft())
+            
+                    else:
+                        if(len(Pre_MEM)>0):
+                            Post_MEM.append(Pre_MEM.popleft())
+                            if(len(Pre_ALU1)>0):
+                                Pre_MEM.append(Pre_ALU1.popleft())
+                                if(len(Pre_Issue)>0 and (getnames(Pre_Issue[0]).split(' ')[0]=='LW' or getnames(Pre_Issue[0]).split(' ')[0]=='SW')):
+                                    Pre_ALU1.append(Pre_Issue.popleft())
+                            else:
+                                if(len(Pre_Issue)>0 and (getnames(Pre_Issue[0]).split(' ')[0]=='LW' or getnames(Pre_Issue[0]).split(' ')[0]=='SW')): 
+                                    Pre_ALU1.append(Pre_Issue.popleft())
+                        else:
+                            if(len(Pre_ALU1)>0):
+                                Pre_MEM.append(Pre_ALU1.popleft())
+                                if(len(Pre_Issue)>0 and (getnames(Pre_Issue[0]).split(' ')[0]=='LW' or getnames(Pre_Issue[0]).split(' ')[0]=='SW')): 
+                                    Pre_ALU1.append(Pre_Issue.popleft())
+                            else:
+                                if(len(Pre_Issue)>0 and (getnames(Pre_Issue[0]).split(' ')[0]=='LW' or getnames(Pre_Issue[0]).split(' ')[0]=='SW')): 
+                                    Pre_ALU1.append(Pre_Issue.popleft())
+                    #执行模拟操作,只有在这一步才进行数据的写入
+                    #flag=True    
+                    #作为标签,当这个数据更新之后才更新寄存器和存储器,
+            #下面的一部分是处理ALU2路径上的指令的
+                if(len(Post_ALU2)>0):
+                    #这一步骤是执行的WB操作
+                    adds,reg,mem=MIPSsimulation(fadds,adds,Post_ALU2[0],reg,mem)
+                    Post_ALU2.popleft()
+                    if(len(Pre_ALU2)>0):
+                           Post_ALU2.append(Pre_ALU2.popleft())                               
+                           if(len(Pre_Issue)>0 and getnames(Pre_Issue[0]).split(' ')[0]!='SW' and getnames(Pre_Issue[0]).split(' ')[0]!='LW'):
+                               Pre_ALU2.append(Pre_Issue.popleft())
+                    else:
+                        if(len(Pre_Issue)>0 and getnames(Pre_Issue[0]).split(' ')[0]!='SW' and getnames(Pre_Issue[0]).split(' ')[0]!='LW'):
+                           Pre_ALU2.append(Pre_Issue.popleft())
+                else:
+                
+                       if(len(Pre_ALU2)>0):
+                           Post_ALU2.append(Pre_ALU2.popleft())
+                           if(len(Pre_Issue)>0 and getnames(Pre_Issue[0]).split(' ')[0]!='SW' and getnames(Pre_Issue[0]).split(' ')[0]!='LW'):
+                               Pre_ALU2.append(Pre_Issue.popleft())
+                       else:
+                           if(len(Pre_Issue)>0 and getnames(Pre_Issue[0]).split(' ')[0]!='SW' and getnames(Pre_Issue[0]).split(' ')[0]!='LW'):
+                               Pre_ALU2.append(Pre_Issue.popleft())
+            
+            if(len(Pre_Issue)>0): 
+                if(getnames(Pre_Issue[0]).split(' ')[0]!='SW' and getnames(Pre_Issue[0]).split(' ')[0]!='LW'):
                     if(len(Pre_ALU2)==0 and len(Post_ALU2)==0):
                         if(len(Post_MEM)>0):
                             adds,reg,mem=MIPSsimulation(fadds,adds,Post_MEM[0],reg,mem)
@@ -505,30 +573,38 @@ def test():
                                 Post_MEM.append(Pre_MEM.popleft())
                                 if(len(Pre_ALU1)>0):
                                     Pre_MEM.append(Pre_ALU1.popleft())
-                                    Pre_ALU1.append(Pre_Issue.popleft())
+                                    if(len(Pre_Issue)>0 and (getnames(Pre_Issue[0]).split(' ')[0]=='LW' or getnames(Pre_Issue[0]).split(' ')[0]=='SW')):
+                                        Pre_ALU1.append(Pre_Issue.popleft())
                                 else:
-                                    Pre_ALU1.append(Pre_Issue.popleft())
+                                    if(len(Pre_Issue)>0 and (getnames(Pre_Issue[0]).split(' ')[0]=='LW' or getnames(Pre_Issue[0]).split(' ')[0]=='SW')):
+                                        Pre_ALU1.append(Pre_Issue.popleft())
                             else:
                                 if(len(Pre_ALU1)>0):
                                     Pre_MEM.append(Pre_ALU1.popleft())
-                                    Pre_ALU1.append(Pre_Issue.popleft())
+                                    if(len(Pre_Issue)>0 and (getnames(Pre_Issue[0]).split(' ')[0]=='LW' or getnames(Pre_Issue[0]).split(' ')[0]=='SW')): 
+                                        Pre_ALU1.append(Pre_Issue.popleft())
                                 else:
-                                    Pre_ALU1.append(Pre_Issue.popleft())
+                                    if(len(Pre_Issue)>0 and (getnames(Pre_Issue[0]).split(' ')[0]=='LW' or getnames(Pre_Issue[0]).split(' ')[0]=='SW')): 
+                                        Pre_ALU1.append(Pre_Issue.popleft())
         
                         else:
                             if(len(Pre_MEM)>0):
                                 Post_MEM.append(Pre_MEM.popleft())
                                 if(len(Pre_ALU1)>0):
                                     Pre_MEM.append(Pre_ALU1.popleft())
-                                    Pre_ALU1.append(Pre_Issue.popleft())
+                                    if(len(Pre_Issue)>0 and (getnames(Pre_Issue[0]).split(' ')[0]=='LW' or getnames(Pre_Issue[0]).split(' ')[0]=='SW')):
+                                        Pre_ALU1.append(Pre_Issue.popleft())
                                 else:
-                                    Pre_ALU1.append(Pre_Issue.popleft())
+                                    if(len(Pre_Issue)>0 and (getnames(Pre_Issue[0]).split(' ')[0]=='LW' or getnames(Pre_Issue[0]).split(' ')[0]=='SW')): 
+                                        Pre_ALU1.append(Pre_Issue.popleft())
                             else:
                                 if(len(Pre_ALU1)>0):
                                     Pre_MEM.append(Pre_ALU1.popleft())
-                                    Pre_ALU1.append(Pre_Issue.popleft())
+                                    if(len(Pre_Issue)>0 and (getnames(Pre_Issue[0]).split(' ')[0]=='LW' or getnames(Pre_Issue[0]).split(' ')[0]=='SW')): 
+                                        Pre_ALU1.append(Pre_Issue.popleft())
                                 else:
-                                    Pre_ALU1.append(Pre_Issue.popleft())
+                                    if(len(Pre_Issue)>0 and (getnames(Pre_Issue[0]).split(' ')[0]=='LW' or getnames(Pre_Issue[0]).split(' ')[0]=='SW')): 
+                                        Pre_ALU1.append(Pre_Issue.popleft())
                         #执行模拟操作,只有在这一步才进行数据的写入
                         #flag=True    
                         #作为标签,当这个数据更新之后才更新寄存器和存储器,
@@ -539,28 +615,21 @@ def test():
                         adds,reg,mem=MIPSsimulation(fadds,adds,Post_ALU2[0],reg,mem)
                         Post_ALU2.popleft()
                         if(len(Pre_ALU2)>0):
-                               Post_ALU2.append(Pre_ALU2.popleft())
-                               #len(Pre_Issue)>0 and 
-                               '''if(getnames(Pre_Issue[0]).split(' ')[0]!='SW' 
-                               and getnames(Pre_Issue[0]).split(' ')[0]!='LW'):'''
-                               Pre_ALU2.append(Pre_Issue.popleft())
-                        else:#len(Pre_Issue)>0 and 
-                               '''if(getnames(Pre_Issue[0]).split(' ')[0]!='SW' 
-                                  and getnames(Pre_Issue[0]).split(' ')[0]!='LW'):'''
+                               Post_ALU2.append(Pre_ALU2.popleft())                               
+                               if(len(Pre_Issue)>0 and getnames(Pre_Issue[0]).split(' ')[0]!='SW' and getnames(Pre_Issue[0]).split(' ')[0]!='LW'):
+                                   Pre_ALU2.append(Pre_Issue.popleft())
+                        else:
+                            if(len(Pre_Issue)>0 and getnames(Pre_Issue[0]).split(' ')[0]!='SW' and getnames(Pre_Issue[0]).split(' ')[0]!='LW'):
                                Pre_ALU2.append(Pre_Issue.popleft())
                     else:
                     
                            if(len(Pre_ALU2)>0):
                                Post_ALU2.append(Pre_ALU2.popleft())
-                               #len(Pre_Issue)>0 and 
-                               '''if(getnames(Pre_Issue[0]).split(' ')[0]!='SW' 
-                                  and getnames(Pre_Issue[0]).split(' ')[0]!='LW'):'''
-                               Pre_ALU2.append(Pre_Issue.popleft())
+                               if(len(Pre_Issue)>0 and getnames(Pre_Issue[0]).split(' ')[0]!='SW' and getnames(Pre_Issue[0]).split(' ')[0]!='LW'):
+                                   Pre_ALU2.append(Pre_Issue.popleft())
                            else:
-                               #len(Pre_Issue)>0 and 
-                               '''if(getnames(Pre_Issue[0]).split(' ')[0]!='SW' 
-                                  and getnames(Pre_Issue[0]).split(' ')[0]!='LW'):'''
-                               Pre_ALU2.append(Pre_Issue.popleft())
+                               if(len(Pre_Issue)>0 and getnames(Pre_Issue[0]).split(' ')[0]!='SW' and getnames(Pre_Issue[0]).split(' ')[0]!='LW'):
+                                   Pre_ALU2.append(Pre_Issue.popleft())
                         
          
             

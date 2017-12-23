@@ -386,8 +386,6 @@ def test():
                     Pre_Issue.append((instrs[J][1]))
                 I=I+1
                 J=J+1
-                
-    
             
             '''最好的方式是把指令放置在里边,这样的话后边容易进行处理,因为数据
             等相关的信息都保存在里边了,后边执行的时候就可以不需要判断这些数据'''
@@ -395,6 +393,8 @@ def test():
             '''使用deque这种数据结构的popleft函数可以实现从队列中输出
             一条数据,并且这条数据会被打印出来'''
             #Post_MEM.append(Pre_Issue.popleft())
+            
+            len0=len(Post_ALU2)
             
             #这一部分实现的是如何把执行与不执行的部分放在一起进行分析,但是这一步需要注意的是
             #应该首先确定让更新先执行,然后在继续
@@ -492,72 +492,79 @@ def test():
             '''但是,其实这里最好的方式是从后边反过来执行,就是先把后边的指令,靠近写入数据的
             指令执行了,然后再进行后期的处理,下面的可以用来处理,下面的指令都是处理非LW和SW
             的数据'''
-            
-            if(len(Pre_Issue)>0 and (getnames(Pre_Issue[0]).split(' ')[0]=='LW' or getnames(Pre_Issue[0]).split(' ')[0]=='SW')):
-                if(len(Pre_ALU2)==0 and len(Post_ALU2)==0):
-                    if(len(Post_MEM)>0):
-                        adds,reg,mem=MIPSsimulation(fadds,adds,Post_MEM[0],reg,mem)
-                        Post_MEM.popleft()
-                       
-                        if(len(Pre_MEM)>0):
-                            Post_MEM.append(Pre_MEM.popleft())
-                            if(len(Pre_ALU1)>0):
-                                Pre_MEM.append(Pre_ALU1.popleft())
-                                Pre_ALU1.append(Pre_Issue.popleft())
+            #这一部分是处理ALU1路径上相关的指令的.
+            if(len(Pre_Issue)>0):
+                #len(Pre_Issue)>0 and 
+                if((getnames(Pre_Issue[0]).split(' ')[0]=='LW' or getnames(Pre_Issue[0]).split(' ')[0]=='SW')):
+                    if(len(Pre_ALU2)==0 and len(Post_ALU2)==0):
+                        if(len(Post_MEM)>0):
+                            adds,reg,mem=MIPSsimulation(fadds,adds,Post_MEM[0],reg,mem)
+                            Post_MEM.popleft()
+                           
+                            if(len(Pre_MEM)>0):
+                                Post_MEM.append(Pre_MEM.popleft())
+                                if(len(Pre_ALU1)>0):
+                                    Pre_MEM.append(Pre_ALU1.popleft())
+                                    Pre_ALU1.append(Pre_Issue.popleft())
+                                else:
+                                    Pre_ALU1.append(Pre_Issue.popleft())
                             else:
-                                Pre_ALU1.append(Pre_Issue.popleft())
+                                if(len(Pre_ALU1)>0):
+                                    Pre_MEM.append(Pre_ALU1.popleft())
+                                    Pre_ALU1.append(Pre_Issue.popleft())
+                                else:
+                                    Pre_ALU1.append(Pre_Issue.popleft())
+        
                         else:
-                            if(len(Pre_ALU1)>0):
-                                Pre_MEM.append(Pre_ALU1.popleft())
-                                Pre_ALU1.append(Pre_Issue.popleft())
+                            if(len(Pre_MEM)>0):
+                                Post_MEM.append(Pre_MEM.popleft())
+                                if(len(Pre_ALU1)>0):
+                                    Pre_MEM.append(Pre_ALU1.popleft())
+                                    Pre_ALU1.append(Pre_Issue.popleft())
+                                else:
+                                    Pre_ALU1.append(Pre_Issue.popleft())
                             else:
-                                Pre_ALU1.append(Pre_Issue.popleft())
-    
+                                if(len(Pre_ALU1)>0):
+                                    Pre_MEM.append(Pre_ALU1.popleft())
+                                    Pre_ALU1.append(Pre_Issue.popleft())
+                                else:
+                                    Pre_ALU1.append(Pre_Issue.popleft())
+                        #执行模拟操作,只有在这一步才进行数据的写入
+                        #flag=True    
+                        #作为标签,当这个数据更新之后才更新寄存器和存储器,
+                #下面的一部分是处理ALU2路径上的指令的
+                else:   
+                    if(len(Post_ALU2)>0):
+                        #这一步骤是执行的WB操作
+                        adds,reg,mem=MIPSsimulation(fadds,adds,Post_ALU2[0],reg,mem)
+                        Post_ALU2.popleft()
+                        if(len(Pre_ALU2)>0):
+                               Post_ALU2.append(Pre_ALU2.popleft())
+                               #len(Pre_Issue)>0 and 
+                               '''if(getnames(Pre_Issue[0]).split(' ')[0]!='SW' 
+                               and getnames(Pre_Issue[0]).split(' ')[0]!='LW'):'''
+                               Pre_ALU2.append(Pre_Issue.popleft())
+                        else:#len(Pre_Issue)>0 and 
+                               '''if(getnames(Pre_Issue[0]).split(' ')[0]!='SW' 
+                                  and getnames(Pre_Issue[0]).split(' ')[0]!='LW'):'''
+                               Pre_ALU2.append(Pre_Issue.popleft())
                     else:
-                        if(len(Pre_MEM)>0):
-                            Post_MEM.append(Pre_MEM.popleft())
-                            if(len(Pre_ALU1)>0):
-                                Pre_MEM.append(Pre_ALU1.popleft())
-                                Pre_ALU1.append(Pre_Issue.popleft())
-                            else:
-                                Pre_ALU1.append(Pre_Issue.popleft())
-                        else:
-                            if(len(Pre_ALU1)>0):
-                                Pre_MEM.append(Pre_ALU1.popleft())
-                                Pre_ALU1.append(Pre_Issue.popleft())
-                            else:
-                                Pre_ALU1.append(Pre_Issue.popleft())
-                    #执行模拟操作,只有在这一步才进行数据的写入
-                    #flag=True    
-                    #作为标签,当这个数据更新之后才更新寄存器和存储器,
-                
-            if(len(Post_ALU2)>0):
-                adds,reg,mem=MIPSsimulation(fadds,adds,Post_ALU2[0],reg,mem)
-                Post_ALU2.popleft()
-                if(len(Pre_ALU2)>0):
-                       Post_ALU2.append(Pre_ALU2.popleft())
-                       if(len(Pre_Issue)>0 and getnames(Pre_Issue[0]).split(' ')[0]!='SW' 
-                       and getnames(Pre_Issue[0]).split(' ')[0]!='LW'):
-                           Pre_ALU2.append(Pre_Issue.popleft())
-                else:
-                       if(len(Pre_Issue)>0 and getnames(Pre_Issue[0]).split(' ')[0]!='SW' 
-                          and getnames(Pre_Issue[0]).split(' ')[0]!='LW'):
-                           Pre_ALU2.append(Pre_Issue.popleft())
-            else:
+                    
+                           if(len(Pre_ALU2)>0):
+                               Post_ALU2.append(Pre_ALU2.popleft())
+                               #len(Pre_Issue)>0 and 
+                               '''if(getnames(Pre_Issue[0]).split(' ')[0]!='SW' 
+                                  and getnames(Pre_Issue[0]).split(' ')[0]!='LW'):'''
+                               Pre_ALU2.append(Pre_Issue.popleft())
+                           else:
+                               #len(Pre_Issue)>0 and 
+                               '''if(getnames(Pre_Issue[0]).split(' ')[0]!='SW' 
+                                  and getnames(Pre_Issue[0]).split(' ')[0]!='LW'):'''
+                               Pre_ALU2.append(Pre_Issue.popleft())
+                        
+         
             
-                   if(len(Pre_ALU2)>0):
-                       Post_ALU2.append(Pre_ALU2.popleft())
-                       if(len(Pre_Issue)>0 and getnames(Pre_Issue[0]).split(' ')[0]!='SW' 
-                          and getnames(Pre_Issue[0]).split(' ')[0]!='LW'):
-                           Pre_ALU2.append(Pre_Issue.popleft())
-                   else:
-                       if(len(Pre_Issue)>0 and getnames(Pre_Issue[0]).split(' ')[0]!='SW' 
-                          and getnames(Pre_Issue[0]).split(' ')[0]!='LW'):
-                           Pre_ALU2.append(Pre_Issue.popleft())
-                
-     
-        
-        
+            
         
         
             
@@ -577,7 +584,7 @@ def test():
                 
                 
                 #用于判断Post_ALU2的个数是不是为空,如果是的话,IF_Unit的数据可以执行
-            if(len(Post_ALU2)==0):
+            if(len0==0 and len(Post_ALU2)==0):
                 flag=True
         
             

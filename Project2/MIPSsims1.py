@@ -841,7 +841,7 @@ def MIPSsimulations(p1):
             if((i1+1)%8==0 and (i1+1)!=len(mem)): 
                 sim=sim+'\n'+str(fadds+4*(i1+1))+':'
         sim=sim+'\n\n'
-        print(sim)
+        #print(sim)
         f1.write(sim)
         f1.close()
     

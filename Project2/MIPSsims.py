@@ -325,7 +325,6 @@ def MIPSsim(p1):
 '''
 
 def test():
-        #p1='/Users/macbook/documents/华东师大/硕士课程/计算机体系结构/课后作业/Project2/sample.txt'
         p1='E:\\project\\Computer\\Computer-Architecture\\Project2\\sample.txt'
         f=open(p1,'r')
         lines=f.readlines()
@@ -360,34 +359,51 @@ def test():
         Post_ALU2=deque()  #长度为1
         
         J=0  #这个参数用来标注,指令的地址
-        
+
         flag=True     #这是一个标志,用来标记
         flag1=True
 
         #这里边的I给出的是正确的,但是错误的地方在于获取指令的时候不能获取
         #对应的地址信息
-        K=0
+        K=1  #从第一个开始
+        lens=len(Pre_Issue)
+        
         while(1):
             I=0
             #这里需要注意的是,只有在IF_Unit的长度为0的时候允许进入,否则是不允许进入的
-            while(I<2 and len(Pre_Issue)<4 and flag==True and flag1==True and len(IF_Unit)<1):
+            while(I<2 and lens <4 and len(Pre_Issue)<4 and flag==True and flag1==True and len(IF_Unit)<1):
                 if(getnames(instrs[J][1]).split(' ')[0]=='BEQ' or getnames(instrs[J][1]).split(' ')[0]=='BLTZ'
                 or getnames(instrs[J][1]).split(' ')[0]=='BGTZ' or getnames(instrs[J][1]).split(' ')[0]=='JR'):
                     #J, JR, BEQ, BLTZ, BGTZ这些指令都是要进行下面的操作的
                     IF_Unit.append(instrs[J][1])
                     flag=False
                     break
+                
                 elif(getnames(instrs[J][1]).split(' ')[0]=='J'):
                     IF_Unit.append(instrs[J][1])
-                    adds,reg,mem=MIPSsimulation(fadds,adds,IF_Unit[0],reg,mem)
+                    Pre_ALU2.append(Pre_Issue.pop())
+                   # adds,reg,mem=MIPSsimulation(fadds,adds,IF_Unit[0],reg,mem)
                     flag=False
                     break
                 else:
                     Pre_Issue.append((instrs[J][1]))
                 I=I+1
+                lens=lens+1
                 J=J+1
-                
-    
+                if(getnames(instrs[J][1]).split(' ')[0]=='J'):
+                    break
+           
+              
+            
+            len0=len(Post_ALU2)
+            if(len(Post_MEM)>0):
+                if(Pre_Issue[len(Pre_Issue)-1]==Post_MEM[0]):
+                    Post_MEM.popleft()  
+            '''但是,其实这里最好的方式是从后边反过来执行,就是先把后边的指令,靠近写入数据的
+            指令执行了,然后再进行后期的处理,下面的可以用来处理,下面的指令都是处理非LW和SW
+            的数据'''
+            
+            
             
             '''最好的方式是把指令放置在里边,这样的话后边容易进行处理,因为数据
             等相关的信息都保存在里边了,后边执行的时候就可以不需要判断这些数据'''
@@ -398,14 +414,18 @@ def test():
             
             #这一部分实现的是如何把执行与不执行的部分放在一起进行分析,但是这一步需要注意的是
             #应该首先确定让更新先执行,然后在继续
+            #sim=''
             for i in range(20):
                 print('-',end='')
-            print('\nCycle:'+str(K+1)+'\n\n'+'IF Unit:')
+                #sim=sim+'-'
+            #sim=sim+'\nCycle:'+str(K+1)+'\n\nIF Unit:\n'
+            print('\nCycle:'+str(K)+'\n\n'+'IF Unit:')
             if(len(IF_Unit)>0):
-                if(flag==True):
+                if(flag==True or getnames(instrs[J][1]).split(' ')[0]=='J' ):
                     print('\tWaiting Instruction:')
                     print('\tExecuted Instruction:',end='')
                     print('['+getnames(IF_Unit[0])+']')
+                    
                     '''在这个跳转的时候实现J的转换,必须在这个地方进行,等到执行的时候就必须进行了
                     #这一步找到下一个地址后,这里需要注意的是其实这个操作本质上是不改变寄存器和
                     缓存数据的,而且下面的数据操作实现了数据地址的寻找'''
@@ -487,46 +507,66 @@ def test():
             sim=sim+'\n\n'
             print(sim)
             
-
+            flag2=True
             
-            '''但是,其实这里最好的方式是从后边反过来执行,就是先把后边的指令,靠近写入数据的
-            指令执行了,然后再进行后期的处理,下面的可以用来处理,下面的指令都是处理非LW和SW
-            的数据'''
+            lens=len(Pre_Issue)
             
-            if(len(Pre_Issue)>0 and (getnames(Pre_Issue[0]).split(' ')[0]=='LW' or getnames(Pre_Issue[0]).split(' ')[0]=='SW')):
-                if(len(Pre_ALU2)==0 and len(Post_ALU2)==0):
-                    if(len(Post_MEM)>0):
-                        adds,reg,mem=MIPSsimulation(fadds,adds,Post_MEM[0],reg,mem)
-                        Post_MEM.popleft()
-                       
-                        if(len(Pre_MEM)>0):
-                            Post_MEM.append(Pre_MEM.popleft())
-                            if(len(Pre_ALU1)>0):
-                                Pre_MEM.append(Pre_ALU1.popleft())
+            if(len(Post_MEM)>0):
+                adds,reg,mem=MIPSsimulation(fadds,adds,Post_MEM[0],reg,mem)
+                Post_MEM.popleft()
+                flag2=False
+                if(len(Pre_MEM)>0):
+                    Post_MEM.append(Pre_MEM.popleft())
+                    if(len(Pre_ALU1)>0):
+                        Pre_MEM.append(Pre_ALU1.popleft())
+                        if(len(Pre_Issue)>0):
+                            if(len(Pre_ALU2)==0 and len(Post_ALU2)==0 and (getnames(Pre_Issue[0]).split(' ')[0]=='LW' or getnames(Pre_Issue[0]).split(' ')[0]=='SW')):
                                 Pre_ALU1.append(Pre_Issue.popleft())
-                            else:
-                                Pre_ALU1.append(Pre_Issue.popleft())
-                        else:
-                            if(len(Pre_ALU1)>0):
-                                Pre_MEM.append(Pre_ALU1.popleft())
-                                Pre_ALU1.append(Pre_Issue.popleft())
-                            else:
-                                Pre_ALU1.append(Pre_Issue.popleft())
-    
+                                flag2=False
                     else:
-                        if(len(Pre_MEM)>0):
-                            Post_MEM.append(Pre_MEM.popleft())
-                            if(len(Pre_ALU1)>0):
-                                Pre_MEM.append(Pre_ALU1.popleft())
+                        if(len(Pre_Issue)>0):
+                            if(len(Pre_ALU2)==0 and len(Post_ALU2)==0 and (getnames(Pre_Issue[0]).split(' ')[0]=='LW' or getnames(Pre_Issue[0]).split(' ')[0]=='SW')):
                                 Pre_ALU1.append(Pre_Issue.popleft())
-                            else:
+                                flag2=False
+                else:
+                    if(len(Pre_ALU1)>0):
+                        Pre_MEM.append(Pre_ALU1.popleft())
+                        if(len(Pre_Issue)>0):
+                            if(len(Pre_ALU2)==0 and len(Post_ALU2)==0 and (getnames(Pre_Issue[0]).split(' ')[0]=='LW' or getnames(Pre_Issue[0]).split(' ')[0]=='SW')):
                                 Pre_ALU1.append(Pre_Issue.popleft())
-                        else:
-                            if(len(Pre_ALU1)>0):
-                                Pre_MEM.append(Pre_ALU1.popleft())
+                                flag2=False
+                    else:
+                        if(len(Pre_Issue)>0):
+                            if(len(Pre_ALU2)==0 and len(Post_ALU2)==0 and (getnames(Pre_Issue[0]).split(' ')[0]=='LW' or getnames(Pre_Issue[0]).split(' ')[0]=='SW')):
                                 Pre_ALU1.append(Pre_Issue.popleft())
-                            else:
+                                flag2=False
+           
+            else:
+                if(len(Pre_MEM)>0):
+                    Post_MEM.append(Pre_MEM.popleft())
+                    if(len(Pre_ALU1)>0):
+                        Pre_MEM.append(Pre_ALU1.popleft())
+                        if(len(Pre_Issue)>0):
+                            if(len(Pre_ALU2)==0 and len(Post_ALU2)==0 and (getnames(Pre_Issue[0]).split(' ')[0]=='LW' or getnames(Pre_Issue[0]).split(' ')[0]=='SW')):
                                 Pre_ALU1.append(Pre_Issue.popleft())
+                                flag2=False
+                    else:
+                        if(len(Pre_Issue)>0):
+                            if(len(Pre_ALU2)==0 and len(Post_ALU2)==0 and (getnames(Pre_Issue[0]).split(' ')[0]=='LW' or getnames(Pre_Issue[0]).split(' ')[0]=='SW')):
+                                Pre_ALU1.append(Pre_Issue.popleft())
+                                flag2=False
+                else:
+                    if(len(Pre_ALU1)>0):
+                        Pre_MEM.append(Pre_ALU1.popleft())
+                        if(len(Pre_Issue)>0):
+                            if(len(Pre_ALU2)==0 and len(Post_ALU2)==0 and (getnames(Pre_Issue[0]).split(' ')[0]=='LW' or getnames(Pre_Issue[0]).split(' ')[0]=='SW')):
+                                Pre_ALU1.append(Pre_Issue.popleft())
+                                flag2=False
+                    else:
+                        if(len(Pre_Issue)>0):
+                            if(len(Pre_ALU2)==0 and len(Post_ALU2)==0 and (getnames(Pre_Issue[0]).split(' ')[0]=='LW' or getnames(Pre_Issue[0]).split(' ')[0]=='SW')):
+                                Pre_ALU1.append(Pre_Issue.popleft())
+                                flag2=False
                     #执行模拟操作,只有在这一步才进行数据的写入
                     #flag=True    
                     #作为标签,当这个数据更新之后才更新寄存器和存储器,
@@ -535,91 +575,63 @@ def test():
                 adds,reg,mem=MIPSsimulation(fadds,adds,Post_ALU2[0],reg,mem)
                 Post_ALU2.popleft()
                 if(len(Pre_ALU2)>0):
-                       Post_ALU2.append(Pre_ALU2.popleft())
-                       if(len(Pre_Issue)>0 and getnames(Pre_Issue[0]).split(' ')[0]!='SW' 
-                       and getnames(Pre_Issue[0]).split(' ')[0]!='LW'):
+                       Post_ALU2.append(Pre_ALU2.popleft()) #and len(Pre_ALU1)==0  and len(Pre_MEM)==0
+                       if(len(Pre_Issue)>0 and getnames(Pre_Issue[0]).split(' ')[0]!='SW' and getnames(Pre_Issue[0]).split(' ')[0]!='LW' and flag2==True  and len(Post_MEM)==0):
                            Pre_ALU2.append(Pre_Issue.popleft())
-                else:
-                       if(len(Pre_Issue)>0 and getnames(Pre_Issue[0]).split(' ')[0]!='SW' 
-                          and getnames(Pre_Issue[0]).split(' ')[0]!='LW'):
+                else:# and len(Pre_ALU1)==0 and len(Pre_MEM)==0
+                       if(len(Pre_Issue)>0 and getnames(Pre_Issue[0]).split(' ')[0]!='SW' and getnames(Pre_Issue[0]).split(' ')[0]!='LW' and flag2==True  and len(Post_MEM)==0):
                            Pre_ALU2.append(Pre_Issue.popleft())
             else:
-            
-                   if(len(Pre_ALU2)>0):
-                       Post_ALU2.append(Pre_ALU2.popleft())
-                       if(len(Pre_Issue)>0 and getnames(Pre_Issue[0]).split(' ')[0]!='SW' 
-                          and getnames(Pre_Issue[0]).split(' ')[0]!='LW'):
-                           Pre_ALU2.append(Pre_Issue.popleft())
-                   else:
-                       if(len(Pre_Issue)>0 and getnames(Pre_Issue[0]).split(' ')[0]!='SW' 
-                          and getnames(Pre_Issue[0]).split(' ')[0]!='LW'):
-                           Pre_ALU2.append(Pre_Issue.popleft())
-                
-     
-        
-        
-        
-        
-            
-            
-            
-            if(len(IF_Unit)>0):
-                    if(flag==True):
+                if(len(Pre_ALU2)>0):
+                    Post_ALU2.append(Pre_ALU2.popleft())#and len(Pre_ALU1)==0  and len(Pre_MEM)==0 
+                    if(len(Pre_Issue)>0 and getnames(Pre_Issue[0]).split(' ')[0]!='SW' and getnames(Pre_Issue[0]).split(' ')[0]!='LW' and flag2==True and len(Post_MEM)==0):
+                        Pre_ALU2.append(Pre_Issue.popleft())
+                else:# and len(Pre_ALU1)==0  and len(Pre_MEM)==0
+                    if(len(Pre_Issue)>0 and getnames(Pre_Issue[0]).split(' ')[0]!='SW' and getnames(Pre_Issue[0]).split(' ')[0]!='LW'and flag2==True  and len(Post_MEM)==0):
+                        Pre_ALU2.append(Pre_Issue.popleft())
+              
+            flag2=True
+  
+            if(len(IF_Unit)>0): 
+                    if(flag==True or getnames(IF_Unit[0]).split(' ')[0]=='J'):
                         '''在这个跳转的时候实现J的转换,必须在这个地方进行,等到执行的时候就必须进行了
                         #这一步找到下一个地址后,这里需要注意的是其实这个操作本质上是不改变寄存器和
-                        缓存数据的,而且下面的数据操作实现了数据地址的寻找'''
+                        缓存数据的,而且下面的数据操作实现了数据地址的寻找''' 
+                        adds=instrs[J][0] #更新跳转的地址信息
                         adds,reg,mem=MIPSsimulation(fadds,adds,IF_Unit[0],reg,mem)
                         #这个操作要等到最后的写入操作完成之后才能进行,否则会报错
                         for l in range(len(instrs)):
                             if(instrs[l][0]==adds): 
                                 J=l
                         IF_Unit.popleft()
-                
-                
-                #用于判断Post_ALU2的个数是不是为空,如果是的话,IF_Unit的数据可以执行
-            if(len(Post_ALU2)==0):
+                        flag=True
+            #用于判断Post_ALU2的个数是不是为空,如果是的话,IF_Unit的数据可以执行
+            if(len0==0 and len(Post_ALU2)==0):
                 flag=True
         
             
             if(len(Post_MEM)==0):
                 flag1=True
               
-            if(getnames(instrs[J][1])=='BREAK' or K==12):
+            if(getnames(instrs[J][1])=='BREAK'): 
                 break
+
+          
             
             K=K+1
              #这一部分实现的是如何把执行与不执行的部分放在一起进行分析,但是这一步需要注意的是
             #应该首先确定让更新先执行,然后在继
         
+        
+        
         for i in range(20):
             print('-',end='')
         print('\nCycle:'+str(K+1)+'\n\n'+'IF Unit:')
-        if(len(IF_Unit)>0):
-            if(flag==True):
-                print('\tWaiting Instruction:')
-                print('\tExecuted Instruction:',end='')
-                print('['+getnames(IF_Unit[0])+']')
-                '''在这个跳转的时候实现J的转换,必须在这个地方进行,等到执行的时候就必须进行了
-                 #这一步找到下一个地址后,这里需要注意的是其实这个操作本质上是不改变寄存器和
-                 缓存数据的,而且下面的数据操作实现了数据地址的寻找'''
-                ''' adds,reg,mem=MIPSsimulation(fadds,adds0,IF_Unit[0],reg,mem)
-                 #这个操作要等到最后的写入操作完成之后才能进行,否则会报错
-                 for l in range(len(instrs)):
-                     if(instrs[l][0]==adds): 
-                         J=l
-                 IF_Unit.popleft()
-                 '''
-                 
-            else:
-                print('\tWaiting Instruction:',end='')
-                print('['+getnames(IF_Unit[0])+']')
-                print('\tExecuted Instruction:')
-        else:
-             print('\tWaiting Instruction:')
-             print('\tExecuted Instruction:')
-         
-         
-         #将指令按照顺序打印出来,Pre_Issue指令
+        print('\tWaiting Instruction:')
+        print('\tExecuted Instruction:',end='')
+        print('['+getnames(instrs[J][1])+']')  
+        
+        #将指令按照顺序打印出来,Pre_Issue指令
         print('Pre-Issue Queue:')
         for i in range(0,len(Pre_Issue)):
             print('\tEntry '+str(i)+':['+getnames(Pre_Issue[i])+']')
@@ -660,7 +672,7 @@ def test():
         else:
             print('Post-ALU2 Queue:')
              
-                 
+        
         sim=''
         sim=sim+'\nRegisters\n'+'R00:'
         for k in range(32):
@@ -671,27 +683,12 @@ def test():
             elif(k==24):
                 sim=sim+'\nR24:'
             sim=sim+'\t'+str(reg[k])
-        sim=sim+'\n\nData\n'+str(fadds)+':'
-        print(sim)
-                     
-        ''' for i1 in range((len(mem))):
+        sim=sim+'\n\nData\n'+str(fadds)+':'  
+         
+        for i1 in range((len(mem))):
             sim=sim+'\t'+str(mem[i1])
             if((i1+1)%8==0 and (i1+1)!=len(mem)): 
                 sim=sim+'\n'+str(fadds+4*(i1+1))+':'
         sim=sim+'\n\n'
         print(sim)
-        '''
-        '''
-            
-            p1='E:\\project\\Computer\\Computer-Architecture\\Project2\\sample.txt'
-            f=open(p1,'r')
-            lines=f.readlines()
-            for line in lines:
-                print(line)
-                
-        '''
-        
-
-            
-            
-        
+    

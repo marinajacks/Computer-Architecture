@@ -404,6 +404,7 @@ def test():
             的数据'''
             
             
+
             
             '''最好的方式是把指令放置在里边,这样的话后边容易进行处理,因为数据
             等相关的信息都保存在里边了,后边执行的时候就可以不需要判断这些数据'''
@@ -411,6 +412,8 @@ def test():
             '''使用deque这种数据结构的popleft函数可以实现从队列中输出
             一条数据,并且这条数据会被打印出来'''
             #Post_MEM.append(Pre_Issue.popleft())
+            
+            len0=len(Post_ALU2)
             
             #这一部分实现的是如何把执行与不执行的部分放在一起进行分析,但是这一步需要注意的是
             #应该首先确定让更新先执行,然后在继续
@@ -606,6 +609,7 @@ def test():
                         IF_Unit.popleft()
                         flag=True
             #用于判断Post_ALU2的个数是不是为空,如果是的话,IF_Unit的数据可以执行
+
             if(len0==0 and len(Post_ALU2)==0):
                 flag=True
         

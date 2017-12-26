@@ -10,7 +10,7 @@ Created on Sun Dec 24 20:42:14 2017
 """
 Created on Sat Dec  9 15:10:53 2017
 
-@author: macbook
+@author: chenbiao
 """
 
 '''/* On my honor, I have neither given nor received unauthorized aid on this assignment */'''

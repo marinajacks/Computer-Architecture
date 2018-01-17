@@ -23,6 +23,8 @@ Spyder Editor
 
 This is a  script file write by chenbiao.
 """
+import os 
+
 #首先设计输出为rd,rs,rt类型的数据
 def getsource1(s):
     rd='R'+str(int(s[16:21],2))
@@ -287,5 +289,20 @@ def MIPSsim(p1):
     MIPSparse(p1)
     MIPSsimulations(p1)
     
+if __name__ == '__main__':
+    p1=input()
+    p2=os.getcwd()
+    p=p2+'\\'+p1
+
+    if(os.path.exists(p)):
+        MIPSsim(p)
+        '''print('hello world')
+        f=open(p)
+        lines=f.readlines()
+        for line in lines:
+            print(line)
+            print(p)'''
+    else:
+        print('The File is missing,try again please!')  
 #测试数据的地址
 #p='/Users/macbook/documents/华东师大/硕士课程/计算机体系结构/课后作业/Project2/sample.txt'
